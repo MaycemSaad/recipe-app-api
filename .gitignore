@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Ajoutez cette ligne à la fin de votre .gitignore
+echo "" >> .gitignore
+echo "# VS Code History extension files" >> .gitignore
+echo ".history/" >> .gitignore
