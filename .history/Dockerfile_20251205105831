@@ -1,0 +1,41 @@
+FROM python:3.9-alpine3.13 
+LABEL maintainer="londonappdeveloper.com"
+
+ENV PYTHONUNBUFFERED=1
+
+# Installation des dépendances système nécessaires
+RUN apk add --update --no-cache postgresql-client gcc python3-dev musl-dev postgresql-dev
+
+COPY ./requirements.txt /tmp/requirements.txt
+COPY ./requirements.dev.txt /tmp/requirements.dev.txt
+
+WORKDIR /app
+
+EXPOSE 8000
+
+ARG DEV=false
+RUN python -m venv /py && \
+    /py/bin/pip install --upgrade pip && \
+    /py/bin/pip install -r /tmp/requirements.txt && \
+    if [ "$DEV" = "true" ]; \
+        then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
+    fi && \
+    rm -rf /tmp && \
+    adduser \
+        --disabled-password \
+        --no-create-home \
+        django-user && \
+    # Création automatique du projet Django s'il n'existe pas
+    if [ ! -f "manage.py" ]; then \
+        /py/bin/pip install django; \
+        /py/bin/django-admin startproject core . ; \
+        # Ou pour garder le nom 'app': \
+        # /py/bin/django-admin startproject app . ; \
+    fi
+
+ENV PATH="/py/bin:$PATH"
+
+USER django-user
+
+# Optionnel: copiez votre code source si vous en avez
+COPY . /app/

@@ -1,0 +1,29 @@
+FROM python:3.9-alpine3.13 
+
+ENV PYTHONUNBUFFERED=1
+
+RUN apk add --update --no-cache postgresql-client gcc python3-dev musl-dev postgresql-dev bash
+
+COPY requirements.txt /tmp/requirements.txt
+COPY requirements.dev.txt /tmp/requirements.dev.txt
+
+WORKDIR /app
+
+ARG DEV=false
+RUN python -m venv /py && \
+    /py/bin/pip install --upgrade pip && \
+    /py/bin/pip install -r /tmp/requirements.txt && \
+    if [ "$DEV" = "true" ]; \
+        then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
+    fi && \
+    rm -rf /tmp && \
+    adduser \
+        --disabled-password \
+        --no-create-home \
+        django-user
+
+ENV PATH="/py/bin:$PATH"
+
+USER django-user
+
+# Ne copiez PAS le dossier app, il sera monté via le volumes

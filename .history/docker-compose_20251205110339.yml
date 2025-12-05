@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - DEV=true
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+    depends_on:
+      - db
+    environment:
+      - DB_NAME=recipe_app
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - CREATE_SUPERUSER=true
+    command: >
+      sh -c "
+        if [ ! -f manage.py ]; then
+          django-admin startproject app . &&
+          echo 'Projet Django créé avec succès';
+        fi &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_DB=recipe_app
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,0 +1,7 @@
+#GIT
+.git
+.gitignore
+
+#Docker
+app/__pycache__/
+app//__pycache__/
