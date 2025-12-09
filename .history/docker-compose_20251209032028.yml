@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - DEV=true
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app  # Modifié: montez le répertoire racine, pas juste ./app
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=recipe_app
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - CREATE_SUPERUSER=true
+    command: >
+      sh -c "
+        python manage.py wait_for_db &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_DB=recipe_app
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
